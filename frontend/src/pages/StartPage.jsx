@@ -105,7 +105,7 @@ const StartPage = () => {
 						</Typography>
 						<Typography variant="body1">
 							In the following task, you will be given <strong>200 images</strong> to label as either
-							AI-generated or human-created.
+							AI-generated or human-created. <strong>Please do all 200 images in one go.</strong> It should take <strong>no more than 20 minutes.</strong>
 						</Typography>
 						<Button
 							variant="contained"
