@@ -50,7 +50,11 @@ const LabelPage = () => {
         <Box sx={{ padding: 1, textAlign: "center", overflow: "hidden" }}>
             {images?.length ? (
                 finished ? (
-                    <Typography variant="h6">Finished! 🎉</Typography>
+                    <div>
+                        <h2>Finished! 🎉</h2>
+                        <h4>Please copy the following code into Amazon Turk to indicate that you've finished!</h4>
+                        <h4>{user._id}</h4>
+                    </div>
                 ) : (
                     <Box>
                         <h3>Image {currentIndex + 1}/200</h3>
