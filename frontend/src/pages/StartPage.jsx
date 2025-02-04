@@ -111,7 +111,7 @@ const StartPage = () => {
 							variant="contained"
 							color="primary"
 							onClick={handleAddUserNextPage}
-							sx={{ marginTop: 2, padding: "20px 24px", fontSize: "16px" }}
+							sx={{ marginTop: 2, padding: "10px 24px", fontSize: "16px" }}
 						>
 							Get Started
 						</Button>
