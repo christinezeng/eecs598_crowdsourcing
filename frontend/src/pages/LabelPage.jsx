@@ -1,32 +1,9 @@
-// import * as React from "react";
-// import { useEffect } from "react";
-// import { useUserStore } from "../store/user";
-// import { useImageStore } from "../store/image";
-
-// const LabelPage = () => {
-//     const user = useUserStore((state) => state.user);
-//     console.log("🚀 user_id:", user._id);
-
-//     const { fetchImages, images } = useImageStore();
-
-//     useEffect(() => {
-//         fetchImages();
-//     }, [fetchImages]);
-//     console.log("🚀 ~ LabelPage ~ images:", images);
-
-// 	return(
-//         <h1>label page {user._id}</h1>
-//     )
-// }
-
-// export default LabelPage;
-
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useUserStore } from "../store/user";
 import { useLabelStore } from "../store/label";
 import { useImageStore } from "../store/image";
-import { Typography, CircularProgress, Button, Box } from "@mui/material";
+import { CircularProgress, Button, Box } from "@mui/material";
 
 const LabelPage = () => {
     const user = useUserStore((state) => state.user);
