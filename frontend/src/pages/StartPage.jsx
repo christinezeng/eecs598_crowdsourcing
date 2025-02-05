@@ -106,7 +106,7 @@ const StartPage = () => {
 						<Typography variant="body1">
 							In the following task, you will be given <strong>200 images</strong> to label as either
 							AI-generated or Real. <strong>Please label all 200 images in one go.</strong> 
-							At the end of the survey, you will receive a code to paste into Amazon MTurk survey to receive credit for doing this task.
+							After you have finished, you will receive a code to paste into Amazon MTurk survey to receive credit for doing this task.
 						</Typography>
 						<Button
 							variant="contained"
