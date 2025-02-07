@@ -3,7 +3,7 @@ import Image from "../models/image.model.js";
 export const getImages = async (req, res) => {
 	try 
 	{
-		const images = await Image.find({});
+		const images = await Image.aggregate([{ $sample: { size: 20 } }])
 		res.status(200).json({success: true, data: images});
 	}
 	catch (error)
