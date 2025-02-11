@@ -68,7 +68,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useUserStore } from "../store/user";
 import { useLabelStore } from "../store/label";
 import { useImageStore } from "../store/image";
-import { CircularProgress, Button, Box } from "@mui/material";
+import { CircularProgress, Button, Box, LinearProgress, Typography } from "@mui/material";
 
 const LabelPage = () => {
     const user = useUserStore((state) => state.user);
@@ -89,7 +89,6 @@ const LabelPage = () => {
         setCurrentIndex((prev) => (prev + 1 < images.length ? prev + 1 : setFinished(true)));
     }, [currentIndex, images, user, updateLabel, finished]);
 
-    // Add keyboard event listener
     useEffect(() => {
         const handleKeyDown = (event) => {
             if (event.key === "a") handleNextImage("AI");
@@ -112,13 +111,17 @@ const LabelPage = () => {
                     </div>
                 ) : (
                     <Box>
-                        <Box textAlign="center" sx={{ maxWidth: 900, margin: "auto"}}>
-                                <h4 style={{ fontSize: "16px", fontWeight: "500", lineHeight: "1.4", marginBottom: "8px" }}>
-                                    Please label each image as either <b>"AI-generated"</b> or <b>"Real"</b>.
-                                    Select <b>"Unsure"</b> only if you are truly torn. You can also use keyboard shortcuts: <b>A</b> for AI-generated, <b>R</b> for Real, and <b>U</b> for Unsure.
-                                </h4>
+                        <Box textAlign="center" sx={{ maxWidth: 900, margin: "auto" }}>
+                            <h4 style={{ fontSize: "16px", fontWeight: "500", lineHeight: "1.4", marginBottom: "8px" }}>
+                                Please label each image as either <b>"AI-generated"</b> or <b>"Real"</b>.
+                                Select <b>"Unsure"</b> only if you are truly torn. You can also use keyboard shortcuts: <b>A</b> for AI-generated, <b>R</b> for Real, and <b>U</b> for Unsure.
+                            </h4>
                         </Box>
-                        <h3>Image {currentIndex + 1}/20</h3>
+                        {/* <h3>Image {currentIndex + 1}/{images.length}</h3> */}
+                        <Box display="flex" alignItems="center" sx={{ width: "80%", margin: "auto", mb: 2 }}>
+                            <LinearProgress variant="determinate" value={(currentIndex / images.length) * 100} sx={{ flexGrow: 1, mr: 2 }} />
+                            <Typography variant="body2">{Math.round((currentIndex / images.length) * 100)}%</Typography>
+                        </Box>
                         <Box sx={{ width: 500, height: 400, margin: "auto", overflow: "hidden", borderRadius: 2, boxShadow: 1, backgroundColor: "#f0f0f0" }}>
                             <img src={images[currentIndex]?.image_url} alt="image" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         </Box>

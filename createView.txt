@@ -1,0 +1,134 @@
+db.collection.aggregate([
+  {
+    $group: {
+      _id: "$user_id",
+      entries: {
+        $push: {,
+          image_id: "$image_id",
+          label: "$label"
+        }
+      }
+    }
+  }
+])
+
+
+
+
+
+
+db.createView("UserImageLabelsView", "userlabels", [
+  {
+    $addFields: { image_id_obj: { $toObjectId: "$image_id" } }
+  },
+  {
+    $lookup: {
+      from: "images",
+      localField: "image_id_obj",
+      foreignField: "_id",
+      as: "image_info"
+    }
+  },
+  { $unwind: "$image_info" },
+  {
+    $project: {
+      user_id: 1,
+      image_id: 1,
+      label: 1,
+      true_label: "$image_info.true_label"
+    }
+  }
+]);
+
+
+
+and then a groupby would work here!!
+
+
+db.UserImageLabelsView.aggregate([
+  {
+    $group: {
+      _id: "$user_id",
+      total_correct: {
+        $sum: { $cond: { if: { $eq: ["$label", "$true_label"] }, then: 1, else: 0 } }
+      },
+      total_labels: { $sum: 1 }
+    }
+  },
+  {
+    $project: {
+      _id: 1,
+      total_correct: 1,
+      total_labels: 1,
+      accuracy: { $multiply: [{ $divide: ["$total_correct", "$total_labels"] }, 100] }
+    }
+  }
+])
+
+
+
+
+[
+  {
+    _id: '67a4e92bdcb2e3c4c1495a04',
+    total_correct: 8,
+    total_labels: 11,
+    accuracy: 72.72727272727273
+  },
+  {
+    _id: '67a583e7a5729db66acf696e',
+    total_correct: 32,
+    total_labels: 38,
+    accuracy: 84.21052631578947
+  },
+  {
+    _id: '67a4dec3460014af5b5ed5a6',
+    total_correct: 22,
+    total_labels: 24,
+    accuracy: 91.66666666666666
+  },
+  {
+    _id: '67a59e5569ddce154d3dacc6',
+    total_correct: 16,
+    total_labels: 20,
+    accuracy: 80
+  },
+  {
+    _id: '67a4e6cddcb2e3c4c14959f1',
+    total_correct: 10,
+    total_labels: 16,
+    accuracy: 62.5
+  },
+  {
+    _id: '67a4e59cdcb2e3c4c14959e4',
+    total_correct: 5,
+    total_labels: 10,
+    accuracy: 50
+  },
+  {
+    _id: '67a58d780708f4b7275fdb47',
+    total_correct: 1,
+    total_labels: 1,
+    accuracy: 100
+  },
+  {
+    _id: '67a8ea7e0c6ef938d5ff66db',
+    total_correct: 6,
+    total_labels: 19,
+    accuracy: 31.57894736842105
+  },
+  {
+    _id: '67a4608cc8e378a9b0ad8636',
+    total_correct: 8,
+    total_labels: 13,
+    accuracy: 61.53846153846154
+  },
+  {
+    _id: '67a4eba2dcb2e3c4c1495a12',
+    total_correct: 93,
+    total_labels: 176,
+    accuracy: 52.84090909090909
+  }
+]
+
+
