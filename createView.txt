@@ -16,8 +16,7 @@ db.collection.aggregate([
 
 
 
-
-db.createView("UserImageLabelsView", "userlabels", [
+db.createView("UserImageLabelsViewNew", "userlabels", [
   {
     $addFields: { image_id_obj: { $toObjectId: "$image_id" } }
   },
@@ -32,10 +31,43 @@ db.createView("UserImageLabelsView", "userlabels", [
   { $unwind: "$image_info" },
   {
     $project: {
+      _id: 0,  // Exclude _id
       user_id: 1,
       image_id: 1,
       label: 1,
-      true_label: "$image_info.true_label"
+      true_label: "$image_info.true_label",
+      createdAt: { $dateToString: { format: "%Y-%m-%dT%H:%M:%S.%LZ", date: "$createdAt" } }
+    }
+  }
+]);
+
+
+db.createView("UserImageLabelsViewOriginal", "userlabels", [
+  {
+    $match: {
+      createdAt: { $lt: ISODate("2025-02-07T00:00:00.000Z") }
+    }
+  },
+  {
+    $addFields: { image_id_obj: { $toObjectId: "$image_id" } }
+  },
+  {
+    $lookup: {
+      from: "images",
+      localField: "image_id_obj",
+      foreignField: "_id",
+      as: "image_info"
+    }
+  },
+  { $unwind: "$image_info" },
+  {
+    $project: {
+      _id: 0,  // Exclude _id
+      user_id: 1,
+      image_id: 1,
+      label: 1,
+      true_label: "$image_info.true_label",
+      createdAt: 1
     }
   }
 ]);
@@ -43,92 +75,155 @@ db.createView("UserImageLabelsView", "userlabels", [
 
 
 and then a groupby would work here!!
+Is an image AI generated? AI is true positive
 
-
-db.UserImageLabelsView.aggregate([
+db.UserImageLabelsViewOriginal.aggregate([
   {
     $group: {
       _id: "$user_id",
-      total_correct: {
-        $sum: { $cond: { if: { $eq: ["$label", "$true_label"] }, then: 1, else: 0 } }
+
+      // True Positives (TP): label is AI, true_label is AI
+      true_positives: {
+        $sum: { 
+          $cond: { 
+            if: { $and: [{ $eq: ["$label", "AI"] }, { $eq: ["$true_label", "AI"] }] }, 
+            then: 1, 
+            else: 0 
+          } 
+        }
       },
+
+      // True Negatives (TN): label is Real, true_label is Real
+      true_negatives: {
+        $sum: { 
+          $cond: { 
+            if: { $and: [{ $eq: ["$label", "Real"] }, { $eq: ["$true_label", "Real"] }] }, 
+            then: 1, 
+            else: 0 
+          } 
+        }
+      },
+
+      // False Positives (FP): label is AI, but true_label is Real
+      false_positives: {
+        $sum: { 
+          $cond: { 
+            if: { $and: [{ $eq: ["$label", "AI"] }, { $eq: ["$true_label", "Real"] }] }, 
+            then: 1, 
+            else: 0 
+          } 
+        }
+      },
+
+      // False Negatives (FN): label is Real, but true_label is AI
+      false_negatives: {
+        $sum: { 
+          $cond: { 
+            if: { $and: [{ $eq: ["$label", "Real"] }, { $eq: ["$true_label", "AI"] }] }, 
+            then: 1, 
+            else: 0
+          } 
+        }
+      },
+
+      unsure_labels:
+      {
+        $sum: { 
+          $cond: { 
+            if: { $eq: ["$label", "Unsure"] }, 
+            then: 1, 
+            else: 0
+          } 
+        }
+      },
+
+      // Total labels per user
       total_labels: { $sum: 1 }
     }
   },
   {
     $project: {
       _id: 1,
-      total_correct: 1,
+      true_positives: 1,
+      true_negatives: 1,
+      false_positives: 1,
+      false_negatives: 1,
+      unsure_labels: 1,
       total_labels: 1,
-      accuracy: { $multiply: [{ $divide: ["$total_correct", "$total_labels"] }, 100] }
+
+      // Accuracy Calculation
+      accuracy: {
+        $multiply: [
+          { 
+            $cond: { 
+              if: { $gt: ["$total_labels", 0] },
+              then: { $divide: [{ $add: ["$true_positives", "$true_negatives"] }, "$total_labels"] },
+              else: 0
+            } 
+          }, 
+          100
+        ]
+      },
+
+      // Precision Calculation: TP / (TP + FP)
+      precision: {
+        $multiply: [
+          {
+            $cond: { 
+              if: { $gt: [{ $add: ["$true_positives", "$false_positives"] }, 0] }, 
+              then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_positives"] }] }, 
+              else: 0 
+            }
+          },
+          100
+        ]
+      },
+
+      // Recall Calculation: TP / (TP + FN)
+      recall: {
+        $multiply: [
+          {
+            $cond: { 
+              if: { $gt: [{ $add: ["$true_positives", "$false_negatives"] }, 0] }, 
+              then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_negatives"] }] }, 
+              else: 0 
+            }
+          },
+          100
+        ]
+      },
+
+      // F1-Score Calculation: 2 * (Precision * Recall) / (Precision + Recall)
+      f1_score: {
+        $cond: {
+          if: { $gt: [{ $add: [
+            { $multiply: [
+              { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_positives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_positives"] }] }, else: 0 } },
+              { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_negatives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_negatives"] }] }, else: 0 } }
+            ] },
+            { $multiply: [
+              { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_positives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_positives"] }] }, else: 0 } },
+              { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_negatives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_negatives"] }] }, else: 0 } }
+            ] }
+          ] }, 0] },
+          then: {
+            $multiply: [
+              200,
+              { $divide: [
+                { $multiply: [
+                  { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_positives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_positives"] }] }, else: 0 } },
+                  { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_negatives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_negatives"] }] }, else: 0 } }
+                ] },
+                { $add: [
+                  { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_positives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_positives"] }] }, else: 0 } },
+                  { $cond: { if: { $gt: [{ $add: ["$true_positives", "$false_negatives"] }, 0] }, then: { $divide: ["$true_positives", { $add: ["$true_positives", "$false_negatives"] }] }, else: 0 } }
+                ] }
+              ] }
+            ]
+          },
+          else: 0
+        }
+      }
     }
   }
-])
-
-
-
-
-[
-  {
-    _id: '67a4e92bdcb2e3c4c1495a04',
-    total_correct: 8,
-    total_labels: 11,
-    accuracy: 72.72727272727273
-  },
-  {
-    _id: '67a583e7a5729db66acf696e',
-    total_correct: 32,
-    total_labels: 38,
-    accuracy: 84.21052631578947
-  },
-  {
-    _id: '67a4dec3460014af5b5ed5a6',
-    total_correct: 22,
-    total_labels: 24,
-    accuracy: 91.66666666666666
-  },
-  {
-    _id: '67a59e5569ddce154d3dacc6',
-    total_correct: 16,
-    total_labels: 20,
-    accuracy: 80
-  },
-  {
-    _id: '67a4e6cddcb2e3c4c14959f1',
-    total_correct: 10,
-    total_labels: 16,
-    accuracy: 62.5
-  },
-  {
-    _id: '67a4e59cdcb2e3c4c14959e4',
-    total_correct: 5,
-    total_labels: 10,
-    accuracy: 50
-  },
-  {
-    _id: '67a58d780708f4b7275fdb47',
-    total_correct: 1,
-    total_labels: 1,
-    accuracy: 100
-  },
-  {
-    _id: '67a8ea7e0c6ef938d5ff66db',
-    total_correct: 6,
-    total_labels: 19,
-    accuracy: 31.57894736842105
-  },
-  {
-    _id: '67a4608cc8e378a9b0ad8636',
-    total_correct: 8,
-    total_labels: 13,
-    accuracy: 61.53846153846154
-  },
-  {
-    _id: '67a4eba2dcb2e3c4c1495a12',
-    total_correct: 93,
-    total_labels: 176,
-    accuracy: 52.84090909090909
-  }
-]
-
-
+]);
