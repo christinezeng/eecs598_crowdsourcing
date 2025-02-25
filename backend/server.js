@@ -1,10 +1,12 @@
 import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { connectImagesDB, connectUsersDB, connectUserLabelsDB } from "./config/db.js";
 import imageRoutes from "./routes/image.route.js";
 import userRoutes from "./routes/user.route.js";
 import userLabelRoutes from "./routes/userlabel.route.js";
+import aiRoutes from "./routes/ai.route.js";
 
 dotenv.config();
 
@@ -12,6 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
 
+app.use(cors());
 app.use(express.json()); // Allows handling JSON data in requests
 
 console.log("Image routes loaded!🌷");
@@ -22,6 +25,9 @@ app.use("/api/users", userRoutes);
 
 console.log("User label routes loaded!🌷");
 app.use("/api/userlabels", userLabelRoutes);
+
+console.log("AI routes loaded!🌷");
+app.use("/api/ai", aiRoutes);
 
 if(process.env.NODE_ENV === "production")
 {
