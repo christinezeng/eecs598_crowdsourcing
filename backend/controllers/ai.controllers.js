@@ -13,6 +13,7 @@ export const generateContent = async (req, res) => {
 	
 	try
 	{
+		console.log("GEMINI_API_KEY:", process.env.GEMINI_API_KEY ? "Loaded" : "Not Set");
 		const imageResp = await fetch(image_url)
 			.then((response) => response.arrayBuffer());
 
@@ -31,6 +32,7 @@ export const generateContent = async (req, res) => {
 	catch(error)
 	{
 		console.log("error in calling gemini api:", error.message, image_url);
-		res.status(500).json({ success: false, message: "Server Error" });
+		console.log("GEMINI_API_KEY:", process.env.GEMINI_API_KEY ? "Loaded" : "Not Set");
+		res.status(500).json({ success: false, message: "GEMINI_API_KEY:" + process.env.GEMINI_API_KEY ? "Loaded" : "Not Set" });
 	}
 };
