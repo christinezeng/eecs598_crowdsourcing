@@ -16,7 +16,7 @@ const Accordian = () => {
 					id="panel1-header"
 				>
 					<h4 style={{ fontWeight: 'bold', textAlign: 'center', margin: '0'}}>
-						Click the dropdown for the AI's best guess based on your label.
+						Click the dropdown for the AI's best guess based on your label. The AI is still learning how to best respond, so it can make mistakes.
 					</h4>
 				</AccordionSummary>
 				<AccordionDetails>
