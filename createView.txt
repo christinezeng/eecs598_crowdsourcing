@@ -16,7 +16,12 @@ db.collection.aggregate([
 
 
 
-db.createView("UserImageLabelsViewNew", "userlabels", [
+db.createView("UserImageLabelsViewHumanAI", "userlabels", [
+  {
+    $match: {
+      createdAt: { $gt: ISODate("2025-03-11T00:00:00.000Z") }
+    }
+  },
   {
     $addFields: { image_id_obj: { $toObjectId: "$image_id" } }
   },
@@ -77,7 +82,7 @@ db.createView("UserImageLabelsViewOriginal", "userlabels", [
 and then a groupby would work here!!
 Is an image AI generated? AI is true positive
 
-db.UserImageLabelsViewOriginal.aggregate([
+db.UserImageLabelsViewHumanAI.aggregate([
   {
     $group: {
       _id: "$user_id",
