@@ -24,7 +24,8 @@ export const generateContent = async (req, res) => {
 					mimeType: "image/jpeg",
 				},
 			},
-			"Given the user chose " + user_label + ", is this image AI generated or Real? Is the user's label correct? Add a confidence score in your choice. Include a 2 sentence analysis." ,
+			"The user selected" + user_label + ". Determine whether the image is AI-generated or real. State if the user/`s choice is correct. Provide a confidence score. Include a two-sentence analysis explaining your decision."
+ ,
 		]);
 		
 		res.status(200).json({ success: true, data: result });
