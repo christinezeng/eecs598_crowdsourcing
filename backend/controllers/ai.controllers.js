@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const generateContent = async (req, res) => {
 	const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-	const model = genAI.getGenerativeModel({ model: 'models/gemini-1.5-pro' });
+	const model = genAI.getGenerativeModel({ model: 'models/gemini-2.0-flash-lite' });
 
 	const image_url = decodeURIComponent(req.query.image_url);
 	const user_label = decodeURIComponent(req.query.user_label);

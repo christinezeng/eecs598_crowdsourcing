@@ -85,7 +85,7 @@ const LabelPage = () => {
                                 variant={selectedLabel === "AI" ? "contained" : "outlined"}
                                 sx={{
                                     mx: 1,
-                                    backgroundColor: selectedLabel === "AI" ? "#CDEAC0" : "transparent",
+                                    backgroundColor: selectedLabel === "AI" ? "#CDEAC0" : "white",
                                     color: "black",
                                     borderRadius: "20px",
                                     padding: "10px 20px",
@@ -99,7 +99,7 @@ const LabelPage = () => {
                                 variant={selectedLabel === "Real" ? "contained" : "outlined"}
                                 sx={{
                                     mx: 1,
-                                    backgroundColor: selectedLabel === "Real" ? "#87CEEB" : "transparent",
+                                    backgroundColor: selectedLabel === "Real" ? "#87CEEB" : "white",
                                     color: "black",
                                     borderRadius: "20px",
                                     padding: "10px 20px",
@@ -113,7 +113,7 @@ const LabelPage = () => {
                                 variant={selectedLabel === "Unsure" ? "contained" : "outlined"}
                                 sx={{
                                     mx: 1,
-                                    backgroundColor: selectedLabel === "Unsure" ? "#D0A3BF" : "transparent",
+                                    backgroundColor: selectedLabel === "Unsure" ? "#D0A3BF" : "white",
                                     color: "black",
                                     borderRadius: "20px",
                                     padding: "10px 20px",
